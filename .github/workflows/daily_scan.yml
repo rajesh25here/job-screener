@@ -1,0 +1,33 @@
+name: Daily Job Screening & Slack Push
+
+on:
+  schedule:
+    # Runs at 12:30 UTC (8:30 AM EST) Monday through Friday
+    - cron: '30 12 * * 1-5'
+    # Optional: Afternoon sweep at 18:00 UTC (2:00 PM EST)
+    - cron: '0 18 * * 1-5'
+  workflow_dispatch: # Enables a "Run workflow" button in GitHub to trigger runs on-demand
+
+jobs:
+  screen-and-alert:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Job Screener
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: python job_screener.py
